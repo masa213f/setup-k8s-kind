@@ -58,6 +58,14 @@ run-argocd:
 	$(KUBECTL) create namespace argocd
 	$(KUBECTL) apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v$(ARGOCD_VERSION)/manifests/install.yaml
 
+.PHONY: login-argocd
+login-argocd:
+	@export KUBECONFIG=$(OUTPUT_DIR)/kind_config kubectl create namespace argocd
+	$(KUBECTL) get pods -n argocd -l app.kubernetes.io/name=argocd-server -o name | cut -d'/' -f 2 > $(OUTPUT_DIR)/argocd-password
+	$(KUBECTL) port-forward svc/argocd-server -n argocd 8080:443 > $(OUTPUT_DIR)/argocd-port-forward.log 2>&1 &
+	sleep 10
+	$(ARGOCD) login 127.0.0.1:8080 --insecure --username admin --password $$(cat $(OUTPUT_DIR)/argocd-password)
+
 .PHONY: clean
 clean: stop
 	-rm $(OUTPUT_DIR)/*

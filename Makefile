@@ -52,6 +52,12 @@ start:
 stop:
 	-$(KIND) delete cluster --name=$(CLUSTER_NAME)
 
+.PHONY: run-argocd
+run-argocd:
+	@export KUBECONFIG=$(OUTPUT_DIR)/kind_config kubectl create namespace argocd
+	$(KUBECTL) create namespace argocd
+	$(KUBECTL) apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v$(ARGOCD_VERSION)/manifests/install.yaml
+
 .PHONY: clean
 clean: stop
 	-rm $(OUTPUT_DIR)/*
